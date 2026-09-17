@@ -30,7 +30,21 @@ function selectStop(index) {
 function draw(points) {
   if (map) map.remove();
   map = L.map('map', { zoomControl: false });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+  let fallbackAdded = false;
+  const addFallback = () => {
+    if (fallbackAdded) return;
+    fallbackAdded = true;
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: '© Esri',
+    }).addTo(map);
+  };
+  const streets = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 20,
+    attribution: '© OpenStreetMap contributors © CARTO',
+  });
+  streets.on('tileerror', addFallback).addTo(map);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   const positions = points.map((p, i) => {
     const active = i === selected ? '#e46649' : '#fffdf8';
